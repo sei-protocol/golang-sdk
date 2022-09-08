@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
-	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -84,7 +84,7 @@ func (c *Client) SendOracleDenomProposal(title string, denoms []string) string {
 		sdk.NewCoin("usei", sdk.NewInt(10000000)),
 	})
 	txResp, err := c.signAndSendTx(&txBuilder)
-	return getEventAttributeValue(*txResp, "submit_proposal", "proposal_id")
+	return GetEventAttributeValue(*txResp, "submit_proposal", "proposal_id")
 }
 
 func (c *Client) GetOracleWhitelist() oracletypes.DenomList {

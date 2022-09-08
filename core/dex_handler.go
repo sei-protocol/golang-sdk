@@ -38,7 +38,7 @@ func (c *Client) RegisterPairAndWaitForApproval(
 		return err
 	}
 
-	proposalId := getEventAttributeValue(*proposalResp, "submit_proposal", "proposal_id")
+	proposalId := GetEventAttributeValue(*proposalResp, "submit_proposal", "proposal_id")
 	for {
 		if c.IsProposalHandled(proposalId) {
 			return nil
@@ -57,7 +57,7 @@ func (c *Client) RegisterPair(
 		return nil, err
 	}
 
-	proposalId := getEventAttributeValue(*txResp, "submit_proposal", "proposal_id")
+	proposalId := GetEventAttributeValue(*txResp, "submit_proposal", "proposal_id")
 	c.Vote(proposalId)
 	return txResp, nil
 }
@@ -134,12 +134,12 @@ func (c *Client) SendOrder(order FundedOrder, contractAddr string) (dextypes.Msg
 func (c *Client) SendCancel(
 	order Cancel,
 	contractAddr string,
-	monikerToOrderIds map[string]uint64,
+	monikerToOrderIds map[string][]uint64,
 ) error {
 	txBuilder := c.encodingConfig.TxConfig.NewTxBuilder()
 	msg := dextypes.MsgCancelOrders{
 		Creator:      sdk.AccAddress(c.privKey.PubKey().Address()).String(),
-		OrderIds:     []uint64{monikerToOrderIds[order.Moniker]},
+		OrderIds:     monikerToOrderIds[order.Moniker],
 		ContractAddr: contractAddr,
 	}
 	_ = txBuilder.SetMsgs(&msg)
