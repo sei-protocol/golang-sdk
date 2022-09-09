@@ -12,7 +12,7 @@ import (
 )
 
 func TestClient(t *testing.T) {	
-	seiClient := seiSdk.NewClientWithDefaultConfig(secp256k1.GenPrivKey())	
+  seiClient := seiSdk.NewClientWithDefaultConfig(secp256k1.GenPrivKey())	
 
 	// after uploading the contract code to the blockchain, it will return a auto incrementing 
 	// codeId that is then used to instantiate the contract. 
@@ -47,7 +47,7 @@ func TestClient(t *testing.T) {
         }
     }`
 
-	response, err := seiClient.InstantiateContract(
+  response, err := seiClient.InstantiateContract(
 		contractCodeId,
 		exampleInstantiateMsg,
 	)

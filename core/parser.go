@@ -2,13 +2,12 @@ package client
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 )
 
 func ParseTestFile(filename string) Test {
 	pwd, _ := os.Getwd()
-	file, _ := ioutil.ReadFile(pwd + "/tests/" + filename + ".json")
+	file, _ := os.ReadFile(pwd + "/tests/" + filename + ".json")
 	test := Test{}
 	if err := json.Unmarshal([]byte(file), &test); err != nil {
 		panic(err)

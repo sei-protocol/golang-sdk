@@ -58,7 +58,11 @@ func (c *Client) RegisterPair(
 	}
 
 	proposalId := GetEventAttributeValue(*txResp, "submit_proposal", "proposal_id")
-	c.Vote(proposalId)
+	err = c.Vote(proposalId)
+	if err != nil {
+		return nil, err
+	}
+
 	return txResp, nil
 }
 

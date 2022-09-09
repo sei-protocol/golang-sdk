@@ -33,7 +33,10 @@ func (c *Client) RegisterOracleDenomAndWaitForApproval(filename string) {
 
 func (c *Client) RegisterOracleDenom(title string, denoms []string) string {
 	proposalId := c.SendOracleDenomProposal(title, denoms)
-	c.Vote(proposalId)
+	err := c.Vote(proposalId)
+	if err != nil {
+		panic(err)
+	}
 	return proposalId
 }
 
@@ -84,6 +87,9 @@ func (c *Client) SendOracleDenomProposal(title string, denoms []string) string {
 		sdk.NewCoin("usei", sdk.NewInt(10000000)),
 	})
 	txResp, err := c.signAndSendTx(&txBuilder)
+	if err != nil {
+		panic(err)
+	}
 	return GetEventAttributeValue(*txResp, "submit_proposal", "proposal_id")
 }
 
@@ -113,7 +119,10 @@ func (c *Client) SendOraclePrice(coins sdk.DecCoins) error {
 	(txBuilder).SetFeeAmount([]sdk.Coin{
 		sdk.NewCoin("usei", sdk.NewInt(100000)),
 	})
-	c.signAndSendTx(&txBuilder)
+	_, err := c.signAndSendTx(&txBuilder)
+	if err != nil {
+		return err
+	}
 
 	voteResp, err := c.sendOracleVote(exchangeRatesStr)
 	if err != nil {
