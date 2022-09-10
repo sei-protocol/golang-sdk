@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -13,8 +12,6 @@ import (
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
-
-var mu = sync.Mutex{}
 
 func addGasFee(txBuilder *client.TxBuilder, gasLimit uint64, gasFee sdk.Coin) {
 	(*txBuilder).SetGasLimit(gasLimit)

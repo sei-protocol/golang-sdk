@@ -25,7 +25,6 @@ func (c *Client) InstantiateContract(code uint64, instantiateMsg string) (*sdk.T
 	_ = txBuilder.SetMsgs(&msg)
 	addGasFee(&txBuilder, c.txConfig.gasLimit, c.txConfig.gasFee)
 	return c.signAndSendTx(&txBuilder)
-	// return getEventAttributeValue(txResp, "instantiate", "_contract_address")
 }
 
 // This function takes custom executeMsg and call designated cosmwasm contract execute endpoint

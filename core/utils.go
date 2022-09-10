@@ -2,8 +2,8 @@ package client
 
 import (
 	"encoding/json"
-	"strings"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dextypes "github.com/sei-protocol/sei-chain/x/dex/types"
@@ -18,7 +18,7 @@ func asciiDecodeString(s string) []byte {
 	return []byte(s)
 }
 
-func getEventAttributeValue(response sdk.TxResponse, eventType string, attributeKey string) string {
+func GetEventAttributeValue(response sdk.TxResponse, eventType string, attributeKey string) string {
 	for _, log := range response.Logs {
 		for _, event := range log.Events {
 			if event.Type != eventType {
