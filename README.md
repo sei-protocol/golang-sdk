@@ -30,6 +30,12 @@ func (c *Client) SendRegisterContract(contractAddr string, codeId uint64, needHo
 func (c *Client) RegisterPairAndWaitForApproval(title string, contractAddr string, pairs []*dextypes.Pair) error {...}
 
 func (c *Client) RegisterPair(title string, contractAddr string, pairs []*dextypes.Pair) (*sdk.TxResponse, error) {...}
+
+func (c *Client) SendPairsProposal(title string, contractAddr string, pairs []*dextypes.Pair) (*sdk.TxResponse, error) {...}
+
+func (c *Client) SendOrder(order FundedOrder, contractAddr string) (dextypes.MsgPlaceOrdersResponse, error) {...}
+
+func (c *Client) SendCancel(order Cancel, contractAddr string, monikerToOrderIds map[string][]uint64,) error {...}
 ```
 
 ## Epoch Module
