@@ -63,3 +63,11 @@ func NewDefaultEncodingConfig() *EncodingConfig {
 	app.ModuleBasics.RegisterInterfaces(config.InterfaceRegistry)
 	return &config
 }
+
+func (t *TxConfig) GetGasLimit() uint64 {
+	return t.gasLimit
+}
+
+func (t *TxConfig) GetGasFee() sdk.Coin {
+	return t.gasFee
+}

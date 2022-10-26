@@ -45,3 +45,7 @@ func NewClient(
 		encodingConfig: encodingConfig,
 	}
 }
+
+func (c *Client) GetTxConfig() *TxConfig {
+	return c.txConfig
+}
