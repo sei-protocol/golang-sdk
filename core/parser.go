@@ -31,12 +31,12 @@ func ParseFundedOrder(raw json.RawMessage) FundedOrder {
 	return order
 }
 
-func ParseCancel(raw json.RawMessage) Cancel {
-	cancel := Cancel{}
-	if err := json.Unmarshal(raw, &cancel); err != nil {
+func ParseCancelOrder(raw json.RawMessage) CancelOrder {
+	cancelOrder := CancelOrder{}
+	if err := json.Unmarshal(raw, &cancelOrder); err != nil {
 		panic(err)
 	}
-	return cancel
+	return cancelOrder
 }
 
 func ParseDeposit(raw json.RawMessage) Deposit {

@@ -136,15 +136,16 @@ func (c *Client) SendOrder(order FundedOrder, contractAddr string) (dextypes.Msg
 }
 
 func (c *Client) SendCancel(
-	order Cancel,
+	order CancelOrder,
 	contractAddr string,
-	monikerToOrderIds map[string][]uint64,
 ) error {
+	seiCancellation := ToSeiCancelOrderPlacement(order)
+	orderCancellations := []*dextypes.Cancellation{&seiCancellation}
 	txBuilder := c.encodingConfig.TxConfig.NewTxBuilder()
 	msg := dextypes.MsgCancelOrders{
-		Creator:      sdk.AccAddress(c.privKey.PubKey().Address()).String(),
-		OrderIds:     monikerToOrderIds[order.Moniker],
-		ContractAddr: contractAddr,
+		Creator:       sdk.AccAddress(c.privKey.PubKey().Address()).String(),
+		Cancellations: orderCancellations,
+		ContractAddr:  contractAddr,
 	}
 	_ = txBuilder.SetMsgs(&msg)
 	addGasFee(&txBuilder, c.txConfig.gasLimit, c.txConfig.gasFee)

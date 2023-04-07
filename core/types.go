@@ -39,9 +39,10 @@ type OrderData struct {
 	Leverage       string `json:"leverage"`
 }
 
-type Cancel struct {
-	Account string `json:"account"`
-	Moniker string `json:"moniker"`
+type CancelOrder struct {
+	Account string            `json:"account"`
+	Moniker string            `json:"moniker"`
+	Order   OrderCancellation `json:"order"`
 }
 
 type Deposit struct {
@@ -80,6 +81,14 @@ type OrderPlacement struct {
 	PositionEffect    string `json:"position_effect"`
 	OrderType         string `json:"order_type"`
 	Leverage          string `json:"leverage"`
+}
+
+type OrderCancellation struct {
+	Id                string `json:"id"`
+	PositionDirection string `json:"position_direction"`
+	Price             string `json:"price"`
+	PriceDenom        string `json:"price_denom"`
+	AssetDenom        string `json:"asset_denom"`
 }
 
 type OracleUpdate struct {
