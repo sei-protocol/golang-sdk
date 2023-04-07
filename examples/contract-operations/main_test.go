@@ -12,7 +12,10 @@ import (
 )
 
 func TestClient(t *testing.T) {
-	seiClient := seiSdk.NewClientWithDefaultConfig(secp256k1.GenPrivKey())
+	privKey := secp256k1.GenPrivKey()
+	account := sdk.AccAddress(privKey.PubKey().Address())
+
+	seiClient := seiSdk.NewClientWithDefaultConfig(privKey)
 
 	// after uploading the contract code to the blockchain, it will return a auto incrementing
 	// codeId that is then used to instantiate the contract.
@@ -85,7 +88,6 @@ func TestClient(t *testing.T) {
 
 	// Sending Orders
 	moniker := "example-1"
-	account := "alice"
 	exampleSendOrderMsgString := fmt.Sprintf(`{
 	  "type": "order_placement",
 	  "details": {
@@ -103,7 +105,7 @@ func TestClient(t *testing.T) {
 			"fund": "20000000uusdc",
 			"moniker": "%s"
 	  }
-	}`, account, moniker)
+	}`, account.String(), moniker)
 	exampleSendOrderMsgJsonEncoded, err := json.Marshal(exampleSendOrderMsgString)
 	fundedOrder := seiSdk.ParseFundedOrder(exampleSendOrderMsgJsonEncoded)
 	sendOrderResponse, err := seiClient.SendOrder(
@@ -132,7 +134,7 @@ func TestClient(t *testing.T) {
 				}
 				"moniker": "%s"
 	      }
-	  }`, account, monikerToOrderIds[moniker][0], moniker)
+	  }`, account.String(), monikerToOrderIds[moniker][0], moniker)
 	exampleCancelOrderMsgJsonEncoded, err := json.Marshal(exampleCancelOrderMsgString)
 	cancelOrder := seiSdk.ParseCancelOrder(exampleCancelOrderMsgJsonEncoded)
 	err = seiClient.SendCancel(
