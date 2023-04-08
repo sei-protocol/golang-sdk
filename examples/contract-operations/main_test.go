@@ -44,9 +44,9 @@ func TestClient(t *testing.T) {
         "supported_multicollateral_denoms": ["ATOM"],
         "supported_collateral_denoms": ["USDC", "SEI"],
         "default_margin_ratios":{
-          "initial":"0.0625",
-          "partial":"0.0303",
-          "maintenance":"0.02"
+			"initial":"0.0625",
+			"partial":"0.0303",
+			"maintenance":"0.02"
         }
     }`
 
