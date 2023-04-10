@@ -67,9 +67,14 @@ func TestClient(t *testing.T) {
 		true,
 	)
 
-	tikSize := sdk.NewDec(int64(1))
+	tickSize := sdk.NewDec(int64(1))
 	err = seiClient.RegisterPairAndWaitForApproval("example", contractAddr, []*dextypes.Pair{
-		{PriceDenom: "USDC", AssetDenom: "ATOM", Ticksize: &tikSize},
+		{
+			PriceDenom:       "USDC",
+			AssetDenom:       "ATOM",
+			PriceTicksize:    &tickSize,
+			QuantityTicksize: &tickSize,
+		},
 	})
 	if err != nil {
 		panic(err)
