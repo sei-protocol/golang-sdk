@@ -108,13 +108,8 @@ func (c *Client) SendOraclePrice(coins sdk.DecCoins) error {
 		exchangeRatesStrs = append(exchangeRatesStrs, fmt.Sprintf("%s%s", coin.Amount.String(), coin.Denom))
 	}
 	exchangeRatesStr := strings.Join(exchangeRatesStrs, ",")
-	from := sdk.AccAddress(c.privKey.PubKey().Address())
-	validator := sdk.ValAddress(from)
-	hash := oracletypes.GetAggregateVoteHash(ORACLE_HASH, exchangeRatesStr, validator)
-
 	txBuilder := c.encodingConfig.TxConfig.NewTxBuilder()
-	prevoteMsg := oracletypes.NewMsgAggregateExchangeRatePrevote(hash, from, validator)
-	_ = txBuilder.SetMsgs(prevoteMsg)
+
 	(txBuilder).SetGasLimit(2000000)
 	(txBuilder).SetFeeAmount([]sdk.Coin{
 		sdk.NewCoin("usei", sdk.NewInt(100000)),
@@ -148,18 +143,17 @@ func (c *Client) SendOraclePrice(coins sdk.DecCoins) error {
 func (c *Client) sendOracleVote(exchangeRatesStr string) (*sdk.TxResponse, error) {
 	voter := sdk.AccAddress(c.privKey.PubKey().Address())
 	txBuilder := c.encodingConfig.TxConfig.NewTxBuilder()
-	prevoteMsg := oracletypes.NewMsgAggregateExchangeRateVote(
-		ORACLE_HASH,
+	voteMsg := oracletypes.NewMsgAggregateExchangeRateVote(
 		exchangeRatesStr,
 		voter,
 		sdk.ValAddress(voter),
 	)
-	_ = txBuilder.SetMsgs(prevoteMsg)
+	_ = txBuilder.SetMsgs(voteMsg)
 	(txBuilder).SetGasLimit(2000000)
 	(txBuilder).SetFeeAmount([]sdk.Coin{
 		sdk.NewCoin("usei", sdk.NewInt(100000)),
 	})
-	
+
 	resp, err := c.signAndSendTx(&txBuilder)
 	if err != nil {
 		return nil, err

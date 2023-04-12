@@ -27,10 +27,10 @@ func TestClient(t *testing.T) {
 		sdk.NewCoin("usei", sdk.NewInt(100000)),
 		grpcConn,
 	)
-	
+
 	seiSdk.NewClient(
 		secp256k1.GenPrivKey(),
-		txConfig, 
+		txConfig,
 		seiSdk.NewDefaultEncodingConfig(),
 	)
 }

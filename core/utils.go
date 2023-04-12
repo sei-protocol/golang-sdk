@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -64,6 +65,27 @@ func ToSeiOrderPlacement(fundedOrder FundedOrder) dextypes.Order {
 		AssetDenom:        order.AssetDenom,
 		Data:              string(orderDataBz),
 		OrderType:         orderType,
+	}
+}
+
+func ToSeiCancelOrderPlacement(cancelOrder CancelOrder) dextypes.Cancellation {
+	order := cancelOrder.Order
+	orderId, err := strconv.ParseUint(order.Id, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	positionDirection, err := dextypesutils.GetPositionDirectionFromStr(order.PositionDirection)
+	if err != nil {
+		panic(err)
+	}
+	price := sdk.MustNewDecFromStr(order.Price)
+
+	return dextypes.Cancellation{
+		Id:                orderId,
+		PositionDirection: positionDirection,
+		Price:             price,
+		PriceDenom:        order.PriceDenom,
+		AssetDenom:        order.AssetDenom,
 	}
 }
 

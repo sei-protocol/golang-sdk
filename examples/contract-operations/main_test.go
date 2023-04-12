@@ -11,20 +11,23 @@ import (
 	dextypes "github.com/sei-protocol/sei-chain/x/dex/types"
 )
 
-func TestClient(t *testing.T) {	
-  seiClient := seiSdk.NewClientWithDefaultConfig(secp256k1.GenPrivKey())	
+func TestClient(t *testing.T) {
+	privKey := secp256k1.GenPrivKey()
+	account := sdk.AccAddress(privKey.PubKey().Address())
 
-	// after uploading the contract code to the blockchain, it will return a auto incrementing 
-	// codeId that is then used to instantiate the contract. 
+	seiClient := seiSdk.NewClientWithDefaultConfig(privKey)
+
+	// after uploading the contract code to the blockchain, it will return a auto incrementing
+	// codeId that is then used to instantiate the contract.
 	contractCodeId := uint64(0)
 
-	// Example of an instante message 
+	// Example of an instante message
 	exampleInstantiateMsg := `{
-        "whitelist": ["sei15yfjprdcq8qk5f4rea2vqh8zt769c62j77l3n6"],
+        "whitelist": ["sei1hyqgn0wt93qlcuh7mr2ewqc8pttc49p9ewmz8f"],
         "use_whitelist":false,
-        "multicollateral_whitelist":["sei15yfjprdcq8qk5f4rea2vqh8zt769c62j77l3n6"],
+        "multicollateral_whitelist":["sei1hyqgn0wt93qlcuh7mr2ewqc8pttc49p9ewmz8f"],
         "multicollateral_whitelist_enable":true,
-        "admin":"sei15yfjprdcq8qk5f4rea2vqh8zt769c62j77l3n6",
+        "admin":"sei1hyqgn0wt93qlcuh7mr2ewqc8pttc49p9ewmz8f",
         "denoms": ["SEI","ATOM","USDC","SOL","ETH"],
         "full_denom_mapping": [["usei","SEI","0.000001"],["uatom","ATOM","0.000001"],["uusdc","USDC","0.000001"],["ueth","ETH","0.000001"]],
         "limit_order_fee":{"decimal":"0.0003","negative":false},
@@ -41,13 +44,13 @@ func TestClient(t *testing.T) {
         "supported_multicollateral_denoms": ["ATOM"],
         "supported_collateral_denoms": ["USDC", "SEI"],
         "default_margin_ratios":{
-          "initial":"0.0625",
-          "partial":"0.0303",
-          "maintenance":"0.02"
+			"initial":"0.0625",
+			"partial":"0.0303",
+			"maintenance":"0.02"
         }
     }`
 
-  response, err := seiClient.InstantiateContract(
+	response, err := seiClient.InstantiateContract(
 		contractCodeId,
 		exampleInstantiateMsg,
 	)
@@ -57,24 +60,29 @@ func TestClient(t *testing.T) {
 
 	contractAddr := seiSdk.GetEventAttributeValue(*response, "instantiate", "_contract_address")
 
-  // Example Register Contract
-  seiClient.SendRegisterContract(
-    contractAddr,
-    contractCodeId,
-    true,
-  )
+	// Example Register Contract
+	seiClient.SendRegisterContract(
+		contractAddr,
+		contractCodeId,
+		true,
+	)
 
-  tikSize := sdk.NewDec(int64(1))
-  err = seiClient.RegisterPairAndWaitForApproval("example", contractAddr, []*dextypes.Pair{
-    {PriceDenom: "USDC", AssetDenom: "ATOM", Ticksize: &tikSize},
-  })
-  if err != nil {
-    panic(err)
-  }
+	tickSize := sdk.NewDec(int64(1))
+	err = seiClient.RegisterPairAndWaitForApproval("example", contractAddr, []*dextypes.Pair{
+		{
+			PriceDenom:       "USDC",
+			AssetDenom:       "ATOM",
+			PriceTicksize:    &tickSize,
+			QuantityTicksize: &tickSize,
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
 
-  seiClient.RegisterOracleDenomAndWaitForApproval("example")
+	seiClient.RegisterOracleDenomAndWaitForApproval("example")
 
-	// Example deposit message 
+	// Example deposit message
 	exampleDepositExecuteMsg := `{"deposit": {}}`
 	seiClient.ExecuteContract(
 		contractAddr,
@@ -83,59 +91,62 @@ func TestClient(t *testing.T) {
 		"1000usei",
 	)
 
+	// Sending Orders
+	moniker := "example-1"
+	exampleSendOrderMsgString := fmt.Sprintf(`{
+	  "type": "order_placement",
+	  "details": {
+			"account": "%s",
+			"order": {
+				"position_direction": "LONG",
+				"price": "10",
+				"quantity": "2",
+				"price_denom": "USDC",
+				"asset_denom": "ATOM",
+				"position_effect": "Open",
+				"order_type": "LIMIT",
+				"leverage": "1"
+			},
+			"fund": "20000000uusdc",
+			"moniker": "%s"
+	  }
+	}`, account.String(), moniker)
+	exampleSendOrderMsgJsonEncoded, err := json.Marshal(exampleSendOrderMsgString)
+	fundedOrder := seiSdk.ParseFundedOrder(exampleSendOrderMsgJsonEncoded)
+	sendOrderResponse, err := seiClient.SendOrder(
+		fundedOrder,
+		contractAddr,
+	)
+	if err != nil {
+		panic(err)
+	}
 
-  // Sending Orders
-  moniker := "example-1"
-  account := "alice"
-  exampleSendOrderMsgString := fmt.Sprintf(`{
-    "type": "order_placement",
-    "details": {
-        "account": "%s",
-        "order": {
-            "position_direction": "LONG",
-            "price": "10",
-            "quantity": "2",
-            "price_denom": "USDC",
-            "asset_denom": "ATOM",
-            "position_effect": "Open",
-            "order_type": "LIMIT",
-            "leverage": "1"
-        },
-        "fund": "20000000uusdc",
-        "moniker": "%s"
-    }
-  }`, account, moniker)
-  exampleSendOrderMsgJsonEncoded, err := json.Marshal(exampleSendOrderMsgString)
-  fundedOrder := seiSdk.ParseFundedOrder(exampleSendOrderMsgJsonEncoded)
-  sendOrderResponse, err := seiClient.SendOrder(
-    fundedOrder,
-    contractAddr,
-  )
-  if err != nil {
-    panic(err)
-  }
+	monikerToOrderIds := map[string][]uint64{
+		moniker: sendOrderResponse.OrderIds,
+	}
 
-    // Cancelling Orders
-    exampleCancelOrderMsgString := fmt.Sprintf(`{
-        "type": "order_cancellation",
-        "details": {
-            "account": "%s",
-            "%s": "example-1"
-        }
-    }`, account, moniker)
-    exampleCancelOrderMsgJsonEncoded, err := json.Marshal(exampleCancelOrderMsgString)
-    cancelOrder := seiSdk.ParseCancel(exampleCancelOrderMsgJsonEncoded)
-    monikerToOrderIds := map[string][]uint64{
-      moniker: sendOrderResponse.OrderIds,
-    }
-    err = seiClient.SendCancel(
-      cancelOrder,
-      contractAddr,
-      monikerToOrderIds,
-    )
-    if err != nil {
-      panic(err)
-    }
-  
-  
+	// Cancelling Orders
+	exampleCancelOrderMsgString := fmt.Sprintf(`{
+	      "type": "order_cancellation",
+	      "details": {
+				"account": "%s",
+				"order: {
+					"id": "%d",
+					"position_direction": "LONG",
+					"price": "10",
+					"price_denom": "USDC",
+					"asset_denom": "ATOM"
+				}
+				"moniker": "%s"
+	      }
+	  }`, account.String(), monikerToOrderIds[moniker][0], moniker)
+	exampleCancelOrderMsgJsonEncoded, err := json.Marshal(exampleCancelOrderMsgString)
+	cancelOrder := seiSdk.ParseCancelOrder(exampleCancelOrderMsgJsonEncoded)
+	err = seiClient.SendCancel(
+		cancelOrder,
+		contractAddr,
+	)
+	if err != nil {
+		panic(err)
+	}
 }

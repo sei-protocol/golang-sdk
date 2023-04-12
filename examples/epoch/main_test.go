@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 )
 
-func TestGetEpoch(t *testing.T) {	
+func TestGetEpoch(t *testing.T) {
 	seiClient := seiSdk.NewClientWithDefaultConfig(secp256k1.GenPrivKey())
 
 	currentEpoch := seiClient.GetCurrentEpoch()

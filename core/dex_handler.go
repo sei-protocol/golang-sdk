@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/sei-protocol/sei-chain/x/dex/types"
 	dextypes "github.com/sei-protocol/sei-chain/x/dex/types"
 )
 
@@ -13,7 +13,7 @@ func (c *Client) SendRegisterContract(contractAddr string, codeId uint64, needHo
 	txBuilder := c.encodingConfig.TxConfig.NewTxBuilder()
 	msg := dextypes.MsgRegisterContract{
 		Creator: sdk.AccAddress(c.privKey.PubKey().Address()).String(),
-		Contract: &dextypes.ContractInfo{
+		Contract: &dextypes.ContractInfoV2{
 			CodeId:            codeId,
 			ContractAddr:      contractAddr,
 			NeedOrderMatching: true,
@@ -52,30 +52,11 @@ func (c *Client) RegisterPair(
 	contractAddr string,
 	pairs []*dextypes.Pair,
 ) (*sdk.TxResponse, error) {
-	txResp, err := c.SendPairsProposal(title, contractAddr, pairs)
-	if err != nil {
-		return nil, err
-	}
-
-	proposalId := GetEventAttributeValue(*txResp, "submit_proposal", "proposal_id")
-	err = c.Vote(proposalId)
-	if err != nil {
-		return nil, err
-	}
-
-	return txResp, nil
-}
-
-func (c *Client) SendPairsProposal(
-	title string,
-	contractAddr string,
-	pairs []*dextypes.Pair,
-) (*sdk.TxResponse, error) {
 	txBuilder := c.encodingConfig.TxConfig.NewTxBuilder()
 	from := sdk.AccAddress(c.privKey.PubKey().Address())
-	content := dextypes.NewRegisterPairsProposal(
-		title,
-		title,
+
+	msg := types.NewMsgRegisterPairs(
+		from.String(),
 		[]dextypes.BatchContractPair{
 			{
 				ContractAddr: contractAddr,
@@ -83,13 +64,7 @@ func (c *Client) SendPairsProposal(
 			},
 		},
 	)
-	deposit := sdk.NewCoins(
-		sdk.NewCoin("usei", govtypes.DefaultMinDepositTokens),
-	)
-	msg, err := govtypes.NewMsgSubmitProposal(&content, deposit, from)
-	if err != nil {
-		panic(err)
-	}
+
 	_ = txBuilder.SetMsgs(msg)
 	(txBuilder).SetGasLimit(2000000)
 	(txBuilder).SetFeeAmount([]sdk.Coin{
@@ -136,15 +111,16 @@ func (c *Client) SendOrder(order FundedOrder, contractAddr string) (dextypes.Msg
 }
 
 func (c *Client) SendCancel(
-	order Cancel,
+	order CancelOrder,
 	contractAddr string,
-	monikerToOrderIds map[string][]uint64,
 ) error {
+	seiCancellation := ToSeiCancelOrderPlacement(order)
+	orderCancellations := []*dextypes.Cancellation{&seiCancellation}
 	txBuilder := c.encodingConfig.TxConfig.NewTxBuilder()
 	msg := dextypes.MsgCancelOrders{
-		Creator:      sdk.AccAddress(c.privKey.PubKey().Address()).String(),
-		OrderIds:     monikerToOrderIds[order.Moniker],
-		ContractAddr: contractAddr,
+		Creator:       sdk.AccAddress(c.privKey.PubKey().Address()).String(),
+		Cancellations: orderCancellations,
+		ContractAddr:  contractAddr,
 	}
 	_ = txBuilder.SetMsgs(&msg)
 	addGasFee(&txBuilder, c.txConfig.gasLimit, c.txConfig.gasFee)
